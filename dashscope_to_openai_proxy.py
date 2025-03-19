@@ -27,7 +27,7 @@ app.add_middleware(
 BASE_URL = os.getenv("CUSTOM_API_BASE_URL", "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
 API_TOKEN = os.getenv("DASHSCOPE_API_KEY", "")
 MODEL_MAP = {
-    "farui-plus": "farui-plus",
+    "xiaoxiang-farui": "farui-plus",
 }
 
 class OpenAIRequest(BaseModel):
