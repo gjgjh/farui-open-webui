@@ -169,8 +169,7 @@ async def stream_to_openai_format(request_data: OpenAIRequest) -> AsyncGenerator
             continue  # 跳过空内容
 
         # 计算增量部分
-        delta_content = content[len(prev_content)
-                                    :] if prev_content else content
+        delta_content = content[len(prev_content):] if prev_content else content
         prev_content = content
 
         # 构造OpenAI响应JSON
@@ -244,31 +243,31 @@ async def chat_completions(request: Request):
     # 非流式处理
     try:
         custom_response = await call_custom_api(request_data)
+
+        # 将自定义响应转换为OpenAI格式
+        openai_response = {
+            "id": custom_response["request_id"],
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": request_data.model,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": custom_response["output"]["choices"][0]["message"],
+                    "finish_reason": custom_response["output"]["choices"][0]["finish_reason"]
+                }
+            ],
+            "usage": {
+                "prompt_tokens": custom_response["usage"]["input_tokens"],
+                "completion_tokens": custom_response["usage"]["output_tokens"],
+                "total_tokens": custom_response["usage"]["total_tokens"]
+            }
+        }
+
+        return openai_response
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Backend API error: {str(e)}")
-
-    # 将自定义响应转换为OpenAI格式
-    openai_response = {
-        "id": custom_response["request_id"],
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": request_data.model,
-        "choices": [
-            {
-                "index": 0,
-                "message": custom_response["output"]["choices"][0]["message"],
-                "finish_reason": custom_response["output"]["choices"][0]["finish_reason"]
-            }
-        ],
-        "usage": {
-            "prompt_tokens": custom_response["usage"]["input_tokens"],
-            "completion_tokens": custom_response["usage"]["output_tokens"],
-            "total_tokens": custom_response["usage"]["total_tokens"]
-        }
-    }
-
-    return openai_response
 
 
 @app.options("/models")
