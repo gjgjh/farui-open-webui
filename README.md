@@ -1,11 +1,11 @@
 # open-webui x 通义法睿
-该项目演示了如何封装第三方大模型API接口, 并结合Open WebUI实现私有化部署。动机: 
-- 通义法睿的API调用相比官网APP更加灵活也更便宜
+该项目演示了如何封装第三方大模型API接口（支持SSE和非SSE输出）, 并结合Open WebUI实现私有化部署。动机: 
+- 通义法睿的API相比通义法睿应用使用起来更加灵活也更便宜, 适合个人用户
 - 私有化部署，数据更安全
 
 Open WebUI：https://github.com/open-webui/open-webui
 
-通义法睿：https://tongyi.aliyun.com/farui/home
+通义法睿：https://help.aliyun.com/zh/model-studio/developer-reference/tongyi-farui
 
 ## 安装并启动Open WebUI
 ```bash
@@ -20,6 +20,7 @@ open-webui serve
 ```
 
 Open WebUI启动后，访问地址默认为 http://localhost:8080
+这里将OPENAI_API默认关闭，防止加载时load时间过长的问题。如果后续有需要，可以在“设置-管理员设置-外部链接”中重新勾选。
 
 ## 运行通义法睿
 
