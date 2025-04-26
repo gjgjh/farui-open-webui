@@ -16,6 +16,7 @@ pip install open-webui
 export ENABLE_OPENAI_API=0 # Currently we are not using this
 
 # Running Open WebUI
+export WEBUI_NAME="MY_FARUI"
 open-webui serve
 ```
 
