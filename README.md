@@ -47,4 +47,5 @@ export WORKSPACE_ID="llm-xxx"
 uvicorn farui_to_openai_proxy:app --host 0.0.0.0 --port 11435 --reload
 ```
 
-运行后，OpenAI服务基础地址分别为 http://localhost:11434 和 http://localhost:11435。接下来，在Open WebUI中设置相应的端点、API_KEY、模型名称即可。
+运行后，OpenAI服务基础地址分别为 http://localhost:11434 和 http://localhost:11435
+接下来，在Open WebUI中设置相应的端点、API_KEY、模型名称即可。
