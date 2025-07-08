@@ -1,5 +1,6 @@
 """
-以Dashscope 法睿模型为例, 演示如何封装custom API为openai兼容格式
+封装**法睿模型API**为OpenAI兼容格式, 即farui-plus
+原始API参考: https://tongyi.aliyun.com/farui/guide/model_api_doc
 """
 
 from fastapi import FastAPI, Request, HTTPException
