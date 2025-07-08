@@ -234,8 +234,28 @@ async def chat_completions(request: Request):
             }
         )
     else:
-        raise HTTPException(
-            status_code=500, detail=f"Not supported non-streaming mode for {request_data.model}")
+        # 把 SSE 全量收完，组装成一次性 OpenAI 格式返回
+        full_text = ""
+        async for res in await farui.do_sse_query(request_data.messages[-1]["content"]):
+            try:
+                sse_event = json.loads(res.get("event").data)
+                full_text = sse_event.get("ResponseMarkdown", "") or full_text
+            except Exception:
+                continue
+        return {
+            "id": f"chatcmpl-{int(time.time())}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": request_data.model,
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": full_text
+                },
+                "finish_reason": "stop"
+            }]
+        }
 
 
 @app.options("/models")
