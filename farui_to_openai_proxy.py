@@ -10,7 +10,7 @@ import os
 import json
 import time
 from fastapi.middleware.cors import CORSMiddleware
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List
 
 
 from alibabacloud_tea_openapi_sse.client import Client as OpenApiClient
@@ -93,22 +93,22 @@ class Farui:
         )
         return params
 
-    async def do_sse_query(self, query: str):
-        assert self._client is not None
-        assert isinstance(
-            query, str), '"recalling_query" is mandatory and should be str'
+    async def do_sse_query(self, messages: List[dict]):
         assistant = {
-            'type': 'legal_advice_consult',
-            'version': '1.0.0'
+            'type': 'legal_advice_consult'
         }
         thread = {
-            'messages': [{'role': 'user', 'content': f'{query}'}]
+            'messages': messages
         }
         body = {
             'appId': 'farui',
             'stream': True,
             'assistant': assistant,
-            'thread': thread
+            'thread': thread,
+            'extra': {
+                'deepThink': True,
+                'onlineSearch': False
+            }
         }
         request = open_api_models.OpenApiRequest(
             body=body
@@ -136,14 +136,12 @@ class OpenAIRequest(BaseModel):
 
 async def stream_to_openai_format(request_data: OpenAIRequest) -> AsyncGenerator[str, None]:
     """将SSE响应转换为OpenAI流式格式"""
-    content = request_data.messages[-1].get("content", "")
-
     prev_content = ""
     is_first = True
     start_time = int(time.time())
     openai_id = f"chatcmpl-{int(time.time())}"
 
-    async for res in await farui.do_sse_query(content):
+    async for res in await farui.do_sse_query(request_data.messages):
         try:
             sse_event = json.loads(res.get('event').data)
             # print(res.get('event').data)
@@ -157,7 +155,19 @@ async def stream_to_openai_format(request_data: OpenAIRequest) -> AsyncGenerator
         else:
             finish_reason = None
 
-        content = sse_event.get("ResponseMarkdown", "")
+        # For non deep think
+        # content = sse_event.get("ResponseMarkdown", "")
+        
+        # For deep think
+        contents = sse_event.get("contents", "")
+        contents= json.loads(contents)
+        content = ""
+        for item in contents:
+            content_type = item.get("contentType", "") 
+            if content_type not in ["deepThink", "text"]:
+                continue
+            content += item.get("content", "") 
+        
         if not content:
             continue  # 跳过空内容
 
@@ -236,7 +246,7 @@ async def chat_completions(request: Request):
     else:
         # 把 SSE 全量收完，组装成一次性 OpenAI 格式返回
         full_text = ""
-        async for res in await farui.do_sse_query(request_data.messages[-1]["content"]):
+        async for res in await farui.do_sse_query(request_data.messages):
             try:
                 sse_event = json.loads(res.get("event").data)
                 full_text = sse_event.get("ResponseMarkdown", "") or full_text
